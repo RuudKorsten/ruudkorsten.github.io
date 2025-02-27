@@ -3,17 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clicker Game</title>
+    <title>Fun Clicker Game</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
-        <h1>Simple Clicker Game</h1>
-        <p>Click the button as many times as you can!</p>
-        <button id="click-btn">Click Me!</button>
-        <p>Score: <span id="score">0</span></p>
+        <h1>🔥 Clicker Challenge 🔥</h1>
+        <p>Click as fast as you can before time runs out!</p>
+        
+        <div class="game-info">
+            <p>Time Left: <span id="timer">30</span> seconds</p>
+            <p>Score: <span id="score">0</span></p>
+            <p>High Score: <span id="high-score">0</span></p>
+        </div>
+        
+        <button id="click-btn">Click Me! 🎯</button>
+        <p id="message"></p>
+        
+        <button id="restart-btn" class="hidden">Restart Game 🔄</button>
     </div>
+
     <script src="script.js"></script>
 </body>
 </html>
- 
