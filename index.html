@@ -3,97 +3,138 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cartoon Catcher</title>
+    <title>Minimalist Catch the Circle Game</title>
     <style>
         body {
-            background-color: #87CEEB;
-            font-family: 'Comic Sans MS', cursive;
-            text-align: center;
-            color: #FF6347;
-        }
-        #gameArea {
-            border: 2px dashed #FF4500;
-            width: 600px;
-            height: 400px;
-            margin: 20px auto;
-            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #282c34;
+            color: white;
+            font-family: Arial, sans-serif;
             overflow: hidden;
-            background-color: #F0E68C;
         }
-        .target {
-            width: 50px;
-            height: 50px;
+        #game-container {
+            position: relative;
+            width: 90vw;
+            height: 90vh;
+            border: 2px solid #61dafb;
+            overflow: hidden;
+            background-color: #20232a;
+        }
+        .circle {
             position: absolute;
-            background-color: #FF69B4;
             border-radius: 50%;
+            background-color: #61dafb;
             cursor: pointer;
+            transition: transform 0.1s ease;
         }
-        #score, #timer, #goal {
-            margin: 10px;
-            font-size: 24px;
+        #score, #timer {
+            position: absolute;
+            top: 10px;
+            font-size: 2em;
+            z-index: 10;
         }
-        #endMessage {
+        #game-over, #victory {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3em;
             display: none;
-            font-size: 30px;
-            color: #FF4500;
+            color: #61dafb;
+        }
+        #restart {
+            display: none;
+            font-size: 1.5em;
+            cursor: pointer;
+            color: #61dafb;
         }
     </style>
 </head>
 <body>
+    <div id="game-container">
+        <div id="score">Score: 0</div>
+        <div id="timer">Time: 30</div>
+        <div id="game-over">Game Over!</div>
+        <div id="victory">You Win!</div>
+        <div id="restart" onclick="startGame()">Restart</div>
+    </div>
 
-<h1>Catch the Cartoon Characters!</h1>
-<div id="goal">Score to win: <span id="winScore">10</span></div>
-<div id="score">Score: <span id="currentScore">0</span></div>
-<div id="timer">Time Left: <span id="timeLeft">30</span> seconds</div>
-<div id="gameArea"></div>
-<div id="endMessage"></div>
+    <script>
+        const container = document.getElementById('game-container');
+        const scoreElem = document.getElementById('score');
+        const timerElem = document.getElementById('timer');
+        const gameOverElem = document.getElementById('game-over');
+        const victoryElem = document.getElementById('victory');
+        const restartElem = document.getElementById('restart');
 
-<script>
-    let score = 0;
-    const winScore = 10;
-    let timeLeft = 30;
-    const gameArea = document.getElementById('gameArea');
-    const currentScoreDisplay = document.getElementById('currentScore');
-    const timeLeftDisplay = document.getElementById('timeLeft');
-    const endMessage = document.getElementById('endMessage');
-    
-    function spawnTarget() {
-        const target = document.createElement('div');
-        target.classList.add('target');
-        target.style.left = Math.random() * (gameArea.clientWidth - 50) + 'px';
-        target.style.top = Math.random() * (gameArea.clientHeight - 50) + 'px';
-        target.onclick = () => {
-            score++;
-            currentScoreDisplay.textContent = score;
-            target.remove();
-            if (score >= winScore) {
-                clearInterval(timerInterval);
-                endMessage.textContent = "You Win! 🎉";
-                endMessage.style.display = 'block';
-            }
-        };
-        gameArea.appendChild(target);
-        setTimeout(() => {
-            target.remove();
-        }, 2000);
-    }
+        let score = 0;
+        let timeLeft = 30;
+        let gameInterval, timerInterval;
 
-    function startGame() {
-        const spawnInterval = setInterval(spawnTarget, 1000);
-        const timerInterval = setInterval(() => {
+        function startGame() {
+            score = 0;
+            timeLeft = 30;
+            scoreElem.textContent = `Score: ${score}`;
+            timerElem.textContent = `Time: ${timeLeft}`;
+            gameOverElem.style.display = 'none';
+            victoryElem.style.display = 'none';
+            restartElem.style.display = 'none';
+            container.innerHTML = container.innerHTML; // Clear previous circles
+            generateCircle();
+            gameInterval = setInterval(generateCircle, 1000);
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+
+        function generateCircle() {
+            const circle = document.createElement('div');
+            const size = Math.random() * 50 + 30; 
+            const x = Math.random() * (container.clientWidth - size);
+            const y = Math.random() * (container.clientHeight - size);
+            circle.classList.add('circle');
+            circle.style.width = `${size}px`;
+            circle.style.height = `${size}px`;
+            circle.style.left = `${x}px`;
+            circle.style.top = `${y}px`;
+            circle.onclick = () => {
+                score++;
+                scoreElem.textContent = `Score: ${score}`;
+                circle.remove();
+                circleAnimation(circle);
+            };
+            container.appendChild(circle);
+        }
+
+        function updateTimer() {
             timeLeft--;
-            timeLeftDisplay.textContent = timeLeft;
+            timerElem.textContent = `Time: ${timeLeft}`;
             if (timeLeft <= 0) {
-                clearInterval(spawnInterval);
-                clearInterval(timerInterval);
-                endMessage.textContent = "Game Over! Try Again! 😢";
-                endMessage.style.display = 'block';
+                endGame(false);
             }
-        }, 1000);
-    }
+        }
 
-    startGame();
-</script>
+        function circleAnimation(circle) {
+            circle.style.transform = 'scale(1.2)';
+            setTimeout(() => {
+                circle.style.transform = 'scale(1)';
+            }, 100);
+        }
 
+        function endGame(win) {
+            clearInterval(gameInterval);
+            clearInterval(timerInterval);
+            if (win) {
+                victoryElem.style.display = 'block';
+            } else {
+                gameOverElem.style.display = 'block';
+            }
+            restartElem.style.display = 'block';
+        }
+
+        document.addEventListener('DOMContentLoaded', startGame);
+    </script>
 </body>
 </html>
