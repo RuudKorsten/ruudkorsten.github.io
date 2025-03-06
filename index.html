@@ -3,102 +3,103 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Retro Score Snatcher</title>
+    <title>Color Catcher Game</title>
     <style>
-        body { 
-            background-color: black; 
-            color: white; 
-            font-family: 'Courier New', Courier, monospace; 
-            text-align: center; 
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #121212;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
         }
-        #game {
-            position: relative; 
-            width: 400px; 
-            height: 400px; 
-            border: 2px solid white; 
-            overflow: hidden; 
-            margin: 0 auto; 
-            background-color: #222; 
+        #gameContainer {
+            position: relative;
+            width: 400px;
+            height: 400px;
+            border: 2px solid #ffffff;
+            overflow: hidden;
         }
-        .item {
-            position: absolute; 
-            width: 30px; 
-            height: 30px; 
-            background-color: red; 
-            border-radius: 50%; 
+        .target {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #ff4081;
+            cursor: pointer;
         }
-        #score { 
-            font-size: 20px; 
+        #score, #timer {
+            position: absolute;
+            top: 10px;
+            color: #ffffff;
+            font-size: 20px;
         }
-        #end-message { 
-            display: none; 
-            font-size: 24px; 
+        #timer {
+            right: 10px;
+        }
+        #goal {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
         }
     </style>
 </head>
 <body>
+    <div id="gameContainer">
+        <div id="score">Score: 0</div>
+        <div id="timer">Time: 30</div>
+        <div id="goal">Goal: 10 Points!</div>
+        <div class="target"></div>
+    </div>
+    <script>
+        const scoreElement = document.getElementById("score");
+        const timerElement = document.getElementById("timer");
+        const target = document.querySelector(".target");
+        const goal = 10;
+        let score = 0;
+        let timeLeft = 30;
+        let controlType = Math.random() < 0.5 ? 'mouse' : 'keyboard';
 
-<h1>Retro Score Snatcher</h1>
-<div id="score">Score: 0</div>
-<div id="end-message"></div>
-<div id="game"></div>
-<button id="start-button">Start Game</button>
+        target.style.top = Math.random() * (360) + 'px';
+        target.style.left = Math.random() * (360) + 'px';
 
-<script>
-    let score = 0;
-    const scoreGoal = 10;
-    let gameInterval;
-    const gameArea = document.getElementById('game');
-    const scoreDisplay = document.getElementById('score');
-    const endMessage = document.getElementById('end-message');
-    let controlType;
+        const updateScore = () => {
+            score++;
+            scoreElement.innerText = "Score: " + score;
+            if (score >= goal) {
+                alert("Congratulations! You've reached the goal!");
+                clearInterval(timer);
+            }
+            moveTarget();
+        };
 
-    document.getElementById('start-button').onclick = startGame;
+        const moveTarget = () => {
+            target.style.top = Math.random() * (360) + 'px';
+            target.style.left = Math.random() * (360) + 'px';
+        };
 
-    function startGame() {
-        score = 0;
-        endMessage.style.display = 'none';
-        scoreDisplay.textContent = `Score: ${score}`;
-        gameArea.innerHTML = '';
-        controlType = Math.random() < 0.5 ? 'mouse' : 'keyboard';
-        createItem();
-        gameInterval = setInterval(createItem, 1000);
-    }
+        const countdown = () => {
+            timeLeft--;
+            timerElement.innerText = "Time: " + timeLeft;
+            if (timeLeft <= 0) {
+                alert("Time's up! Your final score is: " + score);
+                clearInterval(timer);
+            }
+        };
 
-    function createItem() {
-        const item = document.createElement('div');
-        item.classList.add('item');
-        item.style.top = Math.random() * (gameArea.clientHeight - 30) + 'px';
-        item.style.left = Math.random() * (gameArea.clientWidth - 30) + 'px';
-        gameArea.appendChild(item);
+        let timer = setInterval(countdown, 1000);
 
         if (controlType === 'mouse') {
-            item.onclick = () => collectItem(item);
+            target.addEventListener("click", updateScore);
         } else {
-            item.tabIndex = 0; 
-            item.onkeydown = (e) => {
-                if (e.key === 'Enter') collectItem(item);
-            };
+            document.addEventListener("keydown", (event) => {
+                if (event.key === " ") {
+                    updateScore();
+                }
+            });
         }
-    }
-
-    function collectItem(item) {
-        score++;
-        scoreDisplay.textContent = `Score: ${score}`;
-        item.remove();
-
-        if (score >= scoreGoal) {
-            endGame(true);
-        }
-    }
-
-    function endGame(isWon) {
-        clearInterval(gameInterval);
-        const message = isWon ? "You Win! Score: " + score : "Game Over! Score: " + score;
-        endMessage.textContent = message;
-        endMessage.style.display = 'block';
-    }
-</script>
-
+    </script>
 </body>
 </html>
