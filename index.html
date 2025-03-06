@@ -3,113 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Retro Space Catcher</title>
+    <title>Retro Score Snatcher</title>
     <style>
-        body {
-            background-color: black;
-            color: white;
-            font-family: 'Courier New', Courier, monospace;
-            text-align: center;
+        body { 
+            background-color: black; 
+            color: white; 
+            font-family: 'Courier New', Courier, monospace; 
+            text-align: center; 
         }
-        #gameCanvas {
-            border: 2px solid white;
-            background-color: #1e1e1e;
-            display: block;
-            margin: 0 auto;
+        #game {
+            position: relative; 
+            width: 400px; 
+            height: 400px; 
+            border: 2px solid white; 
+            overflow: hidden; 
+            margin: 0 auto; 
+            background-color: #222; 
         }
-        #score {
-            font-size: 20px;
+        .item {
+            position: absolute; 
+            width: 30px; 
+            height: 30px; 
+            background-color: red; 
+            border-radius: 50%; 
+        }
+        #score { 
+            font-size: 20px; 
+        }
+        #end-message { 
+            display: none; 
+            font-size: 24px; 
         }
     </style>
 </head>
 <body>
 
-<h1>Retro Space Catcher</h1>
-<canvas id="gameCanvas" width="400" height="400"></canvas>
-<p id="score">Score: 0</p>
-<button id="startButton">Start Game</button>
+<h1>Retro Score Snatcher</h1>
+<div id="score">Score: 0</div>
+<div id="end-message"></div>
+<div id="game"></div>
+<button id="start-button">Start Game</button>
 
 <script>
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
+    let score = 0;
+    const scoreGoal = 10;
+    let gameInterval;
+    const gameArea = document.getElementById('game');
     const scoreDisplay = document.getElementById('score');
-    const startButton = document.getElementById('startButton');
+    const endMessage = document.getElementById('end-message');
+    let controlType;
 
-    let player, stars, score, gameInterval, gameRunning;
-
-    function resetGame() {
-        player = { x: canvas.width / 2 - 15, y: canvas.height - 30, width: 30, height: 30 };
-        stars = [];
-        score = 0;
-        gameRunning = true;
-        scoreDisplay.innerText = 'Score: ' + score;
-        document.addEventListener('mousemove', movePlayer);
-        gameInterval = setInterval(gameLoop, 100);
-    }
-
-    function movePlayer(event) {
-        const rect = canvas.getBoundingClientRect();
-        player.x = event.clientX - rect.left - player.width / 2;
-        if (player.x < 0) player.x = 0;
-        if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
-    }
-
-    function createStar() {
-        const x = Math.random() * (canvas.width - 20);
-        stars.push({ x: x, y: 0, width: 20, height: 20 });
-    }
-
-    function drawPlayer() {
-        ctx.fillStyle = 'lime';
-        ctx.fillRect(player.x, player.y, player.width, player.height);
-    }
-
-    function drawStars() {
-        ctx.fillStyle = 'yellow';
-        stars.forEach(star => {
-            ctx.fillRect(star.x, star.y, star.width, star.height);
-        });
-    }
-
-    function updateStars() {
-        stars.forEach((star, index) => {
-            star.y += 5;
-            if (star.y > canvas.height) {
-                stars.splice(index, 1);
-            } else if (star.y + star.height > player.y && star.x < player.x + player.width && star.x + star.width > player.x) {
-                stars.splice(index, 1);
-                score++;
-                scoreDisplay.innerText = 'Score: ' + score;
-            }
-        });
-    }
-
-    function gameLoop() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        drawPlayer();
-        drawStars();
-        updateStars();
-    }
-
-    function endGame() {
-        clearInterval(gameInterval);
-        gameRunning = false;
-        document.removeEventListener('mousemove', movePlayer);
-        alert('Game Over! Your score: ' + score);
-    }
+    document.getElementById('start-button').onclick = startGame;
 
     function startGame() {
-        resetGame();
-        setInterval(() => {
-            if (gameRunning) createStar();
-        }, 1000);
+        score = 0;
+        endMessage.style.display = 'none';
+        scoreDisplay.textContent = `Score: ${score}`;
+        gameArea.innerHTML = '';
+        controlType = Math.random() < 0.5 ? 'mouse' : 'keyboard';
+        createItem();
+        gameInterval = setInterval(createItem, 1000);
     }
 
-    startButton.addEventListener('click', () => {
-        if (!gameRunning) {
-            startGame();
+    function createItem() {
+        const item = document.createElement('div');
+        item.classList.add('item');
+        item.style.top = Math.random() * (gameArea.clientHeight - 30) + 'px';
+        item.style.left = Math.random() * (gameArea.clientWidth - 30) + 'px';
+        gameArea.appendChild(item);
+
+        if (controlType === 'mouse') {
+            item.onclick = () => collectItem(item);
+        } else {
+            item.tabIndex = 0; 
+            item.onkeydown = (e) => {
+                if (e.key === 'Enter') collectItem(item);
+            };
         }
-    });
+    }
+
+    function collectItem(item) {
+        score++;
+        scoreDisplay.textContent = `Score: ${score}`;
+        item.remove();
+
+        if (score >= scoreGoal) {
+            endGame(true);
+        }
+    }
+
+    function endGame(isWon) {
+        clearInterval(gameInterval);
+        const message = isWon ? "You Win! Score: " + score : "Game Over! Score: " + score;
+        endMessage.textContent = message;
+        endMessage.style.display = 'block';
+    }
 </script>
+
 </body>
 </html>
