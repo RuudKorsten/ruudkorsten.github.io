@@ -4,108 +4,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Catch the Falling Stars</title>
+    <title>Futuristic Space Clicker</title>
     <style>
         body {
-            margin: 0;
-            padding: 0;
             background-color: #1a1a1a;
-            color: #ffffff;
+            color: #fff;
             font-family: 'Arial', sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             height: 100vh;
-        }
-        h1 {
             margin: 0;
         }
-        #gameArea {
-            width: 300px;
-            height: 500px;
-            border: 2px solid #ffffff;
+        #game {
             position: relative;
+            width: 400px;
+            height: 400px;
+            border: 2px solid #00ffcc;
             overflow: hidden;
             background-color: #333;
         }
-        .star {
-            width: 20px;
-            height: 20px;
+        .target {
             position: absolute;
-            background-color: yellow;
             border-radius: 50%;
-            box-shadow: 0 0 5px yellow;
+            background-color: #00ccff;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
         }
         #score {
             margin-top: 20px;
-            font-size: 20px;
+            font-size: 24px;
         }
-        #startBtn {
+        button {
             margin-top: 20px;
             padding: 10px 20px;
-            font-size: 16px;
-            background-color: #444;
-            color: #fff;
+            background-color: #00ccff;
             border: none;
+            color: #fff;
             cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #00ffcc;
         }
     </style>
 </head>
 <body>
-    <h1>Catch the Falling Stars!</h1>
-    <div id="gameArea"></div>
+    <h1>Futuristic Space Clicker</h1>
+    <div id="game"></div>
     <div id="score">Score: 0</div>
-    <button id="startBtn">Start Game</button>
-
+    <button id="startButton">Start Game</button>
     <script>
-        const gameArea = document.getElementById("gameArea");
-        const scoreDisplay = document.getElementById("score");
-        const startBtn = document.getElementById("startBtn");
+        const gameArea = document.getElementById('game');
+        const scoreDisplay = document.getElementById('score');
+        const startButton = document.getElementById('startButton');
         let score = 0;
-        let gameInterval;
+        let target;
 
         function startGame() {
             score = 0;
-            updateScore();
-            startBtn.style.display = 'none';
-            gameInterval = setInterval(createStar, 1000);
+            scoreDisplay.textContent = 'Score: ' + score;
+            spawnTarget();
+            startButton.style.display = 'none';
         }
 
-        function createStar() {
-            const star = document.createElement("div");
-            star.className = "star";
-            const randomX = Math.floor(Math.random() * (gameArea.clientWidth - 20));
-            star.style.left =`${randomX}px`;
-            gameArea.appendChild(star);
-            fallStar(star);
+        function spawnTarget() {
+            if (target) {
+                target.remove();
+            }
+            const x = Math.random() * (gameArea.clientWidth - 30);
+            const y = Math.random() * (gameArea.clientHeight - 30);
+            target = document.createElement('div');
+            target.className = 'target';
+            target.style.left = x + 'px';
+            target.style.top = y + 'px';
+            target.onclick = increaseScore;
+            gameArea.appendChild(target);
         }
 
-        function fallStar(star) {
-            let position = 0;
-            const fallInterval = setInterval(() => {
-                if (position >= gameArea.clientHeight - 20) {
-                    clearInterval(fallInterval);
-                    star.remove();
-                } else {
-                    position += 5;
-                    star.style.top = `${position}px`;
-                }
-            }, 100);
-
-            star.addEventListener('click', () => {
-                score++;
-                updateScore();
-                star.remove();
-                clearInterval(fallInterval);
-            });
+        function increaseScore() {
+            score++;
+            scoreDisplay.textContent = 'Score: ' + score;
+            spawnTarget();
         }
 
-        function updateScore() {
-            scoreDisplay.innerText = `Score: ${score}`;
-        }
-
-        startBtn.addEventListener("click", startGame);
+        startButton.onclick = startGame;
     </script>
 </body>
 </html>
