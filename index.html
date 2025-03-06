@@ -3,138 +3,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minimalist Catch the Circle Game</title>
+    <title>Catch the Color</title>
     <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #282c34;
-            color: white;
-            font-family: Arial, sans-serif;
-            overflow: hidden;
-        }
-        #game-container {
-            position: relative;
-            width: 90vw;
-            height: 90vh;
-            border: 2px solid #61dafb;
-            overflow: hidden;
-            background-color: #20232a;
-        }
-        .circle {
-            position: absolute;
-            border-radius: 50%;
-            background-color: #61dafb;
-            cursor: pointer;
-            transition: transform 0.1s ease;
-        }
-        #score, #timer {
-            position: absolute;
-            top: 10px;
-            font-size: 2em;
-            z-index: 10;
-        }
-        #game-over, #victory {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 3em;
-            display: none;
-            color: #61dafb;
-        }
-        #restart {
-            display: none;
-            font-size: 1.5em;
-            cursor: pointer;
-            color: #61dafb;
-        }
+        body { margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh; background-color: #333; font-family: Arial, sans-serif; color: #fff; overflow: hidden; }
+        #game { position: relative; width: 400px; height: 400px; border: 5px solid #fff; overflow: hidden; }
+        .block { position: absolute; width: 50px; height: 50px; background-color: red; border-radius: 5px; transition: background-color 0.3s; }
+        #score { position: absolute; top: 10px; left: 10px; font-size: 24px; }
+        #timer { position: absolute; top: 10px; right: 10px; font-size: 24px; }
+        .game-over { font-size: 36px; text-align: center; }
+        .win { color: green; }
+        .lose { color: red; }
     </style>
 </head>
 <body>
-    <div id="game-container">
+    <div id="game">
         <div id="score">Score: 0</div>
         <div id="timer">Time: 30</div>
-        <div id="game-over">Game Over!</div>
-        <div id="victory">You Win!</div>
-        <div id="restart" onclick="startGame()">Restart</div>
     </div>
+    <div id="message"></div>
 
     <script>
-        const container = document.getElementById('game-container');
-        const scoreElem = document.getElementById('score');
-        const timerElem = document.getElementById('timer');
-        const gameOverElem = document.getElementById('game-over');
-        const victoryElem = document.getElementById('victory');
-        const restartElem = document.getElementById('restart');
-
+        const gameArea = document.getElementById('game');
+        const scoreDisplay = document.getElementById('score');
+        const timerDisplay = document.getElementById('timer');
+        const messageDisplay = document.getElementById('message');
         let score = 0;
         let timeLeft = 30;
         let gameInterval, timerInterval;
-
+        
         function startGame() {
-            score = 0;
-            timeLeft = 30;
-            scoreElem.textContent = `Score: ${score}`;
-            timerElem.textContent = `Time: ${timeLeft}`;
-            gameOverElem.style.display = 'none';
-            victoryElem.style.display = 'none';
-            restartElem.style.display = 'none';
-            container.innerHTML = container.innerHTML; // Clear previous circles
-            generateCircle();
-            gameInterval = setInterval(generateCircle, 1000);
+            resetGame();
+            gameInterval = setInterval(moveBlock, 1000);
             timerInterval = setInterval(updateTimer, 1000);
         }
 
-        function generateCircle() {
-            const circle = document.createElement('div');
-            const size = Math.random() * 50 + 30; 
-            const x = Math.random() * (container.clientWidth - size);
-            const y = Math.random() * (container.clientHeight - size);
-            circle.classList.add('circle');
-            circle.style.width = `${size}px`;
-            circle.style.height = `${size}px`;
-            circle.style.left = `${x}px`;
-            circle.style.top = `${y}px`;
-            circle.onclick = () => {
+        function resetGame() {
+            score = 0;
+            timeLeft = 30;
+            scoreDisplay.textContent = 'Score: ' + score;
+            timerDisplay.textContent = 'Time: ' + timeLeft;
+            messageDisplay.textContent = '';
+            createBlock();
+        }
+
+        function createBlock() {
+            if (document.querySelector('.block')) {
+                document.querySelector('.block').remove();
+            }
+            const block = document.createElement('div');
+            block.classList.add('block');
+            block.style.top = Math.random() * (gameArea.clientHeight - 50) + 'px';
+            block.style.left = Math.random() * (gameArea.clientWidth - 50) + 'px';
+            block.style.backgroundColor = getRandomColor();
+            gameArea.appendChild(block);
+            block.onclick = () => {
                 score++;
-                scoreElem.textContent = `Score: ${score}`;
-                circle.remove();
-                circleAnimation(circle);
+                scoreDisplay.textContent = 'Score: ' + score;
+                createBlock();
+                block.remove();
+                if (score % 5 === 0) {
+                    clearInterval(gameInterval);
+                    gameInterval = setInterval(moveBlock, 1000 - (score * 20));
+                }
             };
-            container.appendChild(circle);
+        }
+
+        function getRandomColor() {
+            const letters = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+
+        function moveBlock() {
+            createBlock();
         }
 
         function updateTimer() {
             timeLeft--;
-            timerElem.textContent = `Time: ${timeLeft}`;
+            timerDisplay.textContent = 'Time: ' + timeLeft;
             if (timeLeft <= 0) {
-                endGame(false);
+                clearInterval(gameInterval);
+                clearInterval(timerInterval);
+                endGame();
             }
         }
 
-        function circleAnimation(circle) {
-            circle.style.transform = 'scale(1.2)';
-            setTimeout(() => {
-                circle.style.transform = 'scale(1)';
-            }, 100);
+        function endGame() {
+            messageDisplay.innerHTML = score >= 10 ? `<span class="win">You Win!</span>` : `<span class="lose">Game Over!</span>`;
+            messageDisplay.innerHTML += `<div>Your score: ${score}</div>`;
+            setTimeout(startGame, 3000);
         }
-
-        function endGame(win) {
-            clearInterval(gameInterval);
-            clearInterval(timerInterval);
-            if (win) {
-                victoryElem.style.display = 'block';
-            } else {
-                gameOverElem.style.display = 'block';
-            }
-            restartElem.style.display = 'block';
-        }
-
-        document.addEventListener('DOMContentLoaded', startGame);
+        
+        startGame();
     </script>
 </body>
 </html>
